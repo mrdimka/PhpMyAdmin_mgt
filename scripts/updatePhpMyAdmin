@@ -1,0 +1,20 @@
+#!/bin/bash
+
+wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
+
+currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
+dlink=`cat /tmp/phpmyadmin.tmp |sed -n -e 3p`
+
+
+cd /usr/local/webapps/
+rm -rf phpMyAdmin4
+wget $dlink
+tar -zxvf phpMyAdmin-$currentversion-all-languages.tar.gz
+cd phpMyAdmin-$currentversion-all-languages
+cp ../phpMyAdmin/config.inc.php .  
+cd ../ 
+mv phpMyAdmin phpMyAdmin4
+mv phpMyAdmin-$currentversion-all-languages phpMyAdmin
+rm -rf phpMyAdmin-$currentversion-all-languages.tar.gz
+
+rm -rf /tmp/phpmyadmin.tmp

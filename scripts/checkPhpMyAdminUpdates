@@ -1,0 +1,19 @@
+#!/bin/bash
+
+wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
+
+currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
+releaseddate=`cat /tmp/phpmyadmin.tmp |sed -n -e 2p`
+
+currentlocalversion=`ls /usr/local/webapps/phpMyAdmin/RELEASE-DATE* |awk -F "-" {'print $3'}`
+
+if [ $currentlocalversion != $currentversion ]
+        then
+        echo "PhpMyAdmin needs to be updated"
+        echo "Local Version is $currentlocalversion ... Latest Stable Version is $currentversion released on $releaseddate"
+else
+        echo "PhpMyAdmin version is current $currentlocalversion"
+fi
+
+rm /tmp/phpmyadmin.tmp
+

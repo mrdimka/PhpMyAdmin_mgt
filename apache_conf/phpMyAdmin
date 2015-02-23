@@ -1,0 +1,8 @@
+	Alias /phpmyadmin /usr/local/webapps/phpMyAdmin/
+	<Directory /usr/local/webapps/phpMyAdmin/>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+

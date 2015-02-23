@@ -1,1 +1,1 @@
-# updatePhpMyAdmin
+# PhpMyAdmin_mgt

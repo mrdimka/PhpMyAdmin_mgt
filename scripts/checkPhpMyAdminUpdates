@@ -1,19 +1,53 @@
 #!/bin/bash
 
-wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
 
-currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
-releaseddate=`cat /tmp/phpmyadmin.tmp |sed -n -e 2p`
 
-currentlocalversion=`ls /usr/local/webapps/phpMyAdmin/RELEASE-DATE* |awk -F "-" {'print $3'}`
 
-if [ $currentlocalversion != $currentversion ]
+#Help function
+function HELP {
+  echo -e "Basic usage:checkPhpMyAdminUpdates -c config_file"\\n
+  exit 1
+}
+
+function checkPhpMyAdminVersion {
+ wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
+
+ currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
+ releaseddate=`cat /tmp/phpmyadmin.tmp |sed -n -e 2p`
+
+ currentlocalversion=`ls $phpMyAdmin_dir/phpMyAdmin/RELEASE-DATE* |awk -F "-" {'print $3'}`
+
+ if [ $currentlocalversion != $currentversion ]
         then
         echo "PhpMyAdmin needs to be updated"
         echo "Local Version is $currentlocalversion ... Latest Stable Version is $currentversion released on $releaseddate"
-else
+ else
         echo "PhpMyAdmin version is current $currentlocalversion"
-fi
+ fi
 
-rm /tmp/phpmyadmin.tmp
+ rm /tmp/phpmyadmin.tmp
 
+}
+
+
+
+while getopts :c:h FLAG; do
+  case $FLAG in
+    c)  #set option "c"
+      configfile=$OPTARG
+ 	  source $configfile
+ 	  checkPhpMyAdminVersion	
+       ;;
+    h)  #show help
+      HELP
+      ;;
+    \?) #unrecognized option - show help
+      echo -e \\n"Script can not be executed without arguments provided"
+      HELP
+      ;;
+  esac
+done
+
+shift $(( OPTIND - 1 ));
+
+exit 0

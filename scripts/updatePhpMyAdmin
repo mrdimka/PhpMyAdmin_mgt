@@ -3,12 +3,12 @@
 wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
 
 currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
-dlink=`cat /tmp/phpmyadmin.tmp |sed -n -e 3p`
+dlink="https://files.phpmyadmin.net/phpMyAdmin/$currentversion/phpMyAdmin-$currentversion-all-languages.tar.gz"
 
 
 cd /usr/local/webapps/
 rm -rf phpMyAdmin4
-wget $dlink
+curl -O $dlink
 tar -zxvf phpMyAdmin-$currentversion-all-languages.tar.gz
 cd phpMyAdmin-$currentversion-all-languages
 cp ../phpMyAdmin/config.inc.php .  

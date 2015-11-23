@@ -1,9 +1,30 @@
 #!/bin/bash
 
-wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
+while getopts "v:h" OPTION; do
+    case $OPTION in
+    v)
+        version=$OPTARG
+        echo "version $version"
+        ;;
+    h)
+        echo "Usage $(basename $BASH_SOURCE) -v version_number or just $(basename $BASH_SOURCE) for the latest available"
+        ;;
+    \?)
+        echo "Incorrect options provided"
+        exit 1
+        ;;
+    esac
+done
 
-currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
-dlink="https://files.phpmyadmin.net/phpMyAdmin/$currentversion/phpMyAdmin-$currentversion-all-languages.tar.gz"
+if [ $OPTIND -eq 1 ];
+ then
+   wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
+   currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
+   version=$currentversion
+fi
+
+
+dlink="https://files.phpmyadmin.net/phpMyAdmin/$version/phpMyAdmin-$version-all-languages.tar.gz"
 
 
 cd /usr/local/webapps/

@@ -1,31 +1,31 @@
 #!/bin/bash
 
-while getopts "v:h" OPTION; do
-    case $OPTION in
-    v)
-        version=$OPTARG
-        echo "version $version"
-        ;;
-    h)
-        echo "Usage $(basename $BASH_SOURCE) -v version_number or just $(basename $BASH_SOURCE) for the latest available"
-        ;;
-    \?)
-        echo "Incorrect options provided"
-        exit 1
-        ;;
-    esac
-done
+#http://stackoverflow.com/a/4024038/2752290
+do_version_check() {
 
-if [ $OPTIND -eq 1 ];
- then
-   wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
-   currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
-   version=$currentversion
-fi
+   [ "$1" == "$2" ] && return 10
 
+   ver1front=`echo $1 | cut -d "." -f -1`
+   ver1back=`echo $1 | cut -d "." -f 2-`
 
+   ver2front=`echo $2 | cut -d "." -f -1`
+   ver2back=`echo $2 | cut -d "." -f 2-`
+
+   if [ "$ver1front" != "$1" ] || [ "$ver2front" != "$2" ]; then
+       [ "$ver1front" -gt "$ver2front" ] && return 11
+       [ "$ver1front" -lt "$ver2front" ] && return 9
+
+       [ "$ver1front" == "$1" ] || [ -z "$ver1back" ] && ver1back=0
+       [ "$ver2front" == "$2" ] || [ -z "$ver2back" ] && ver2back=0
+       do_version_check "$ver1back" "$ver2back"
+       return $?
+   else
+           [ "$1" -gt "$2" ] && return 11 || return 9
+   fi
+}    
+
+install_PhpMyAdmin () {
 dlink="https://files.phpmyadmin.net/phpMyAdmin/$version/phpMyAdmin-$version-all-languages.tar.gz"
-
 
 cd /usr/local/webapps/
 rm -rf phpMyAdmin4
@@ -39,3 +39,63 @@ mv phpMyAdmin-$version-all-languages phpMyAdmin
 rm -rf phpMyAdmin-$version-all-languages.tar.gz
 
 rm -rf /tmp/phpmyadmin.tmp
+}
+
+while getopts "v:h" OPTION; do
+    case $OPTION in
+    v)
+        version=$OPTARG
+        echo "version $version"
+        ;;
+    h)
+        echo "Usage $(basename $BASH_SOURCE) -v version_number or just $(basename $BASH_SOURCE) for the latest available"
+        exit 0
+        ;;
+    \?)
+        echo "Incorrect options provided"
+        exit 1
+        ;;
+    esac
+done
+
+currentlocalversion=`ls /usr/local/webapps/phpMyAdmin/RELEASE-DATE* |awk -F "-" {'print $3'}`
+do_version_check $currentlocalversion $version
+returncode=$?
+
+if [ $OPTIND -eq 1 ];
+ then
+   wget -q http://www.phpmyadmin.net/home_page/version.php -O /tmp/phpmyadmin.tmp
+   currentversion=`head -n 1 /tmp/phpmyadmin.tmp`
+   version=$currentversion
+   if [ $returncode -eq 10 ]
+     then
+     echo "phpMyAdmin is already in version $version... Exiting"
+     exit 0
+   else
+     install_PhpMyAdmin
+   fi  
+ else
+    if [ $returncode -eq 11 ]
+     then
+     echo -n "Version installed $currentlocalversion is newer than version $version you want to install. Would you like to continue (Y/N)? "
+     read downgrade_confirm
+     case $downgrade_confirm in 
+        [yY]*) echo "Proceeding with downgrade to version $version"
+            install_PhpMyAdmin
+            ;;
+        [nN]*) echo "Aborting downgrade"
+            ;;
+        *) echo "Valid answers are Yes,Y,y or No,N,no"
+           echo "Please run the script again"
+           exit 1  
+           ;;
+        esac
+    elif [ $returncode -eq 10 ]
+     then
+     echo "phpMyAdmin is already in version $version... Exiting"
+     exit 0
+    else
+     echo "Proceeding with update"
+     install_PhpMyAdmin    
+    fi 
+fi
